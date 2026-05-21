@@ -44,6 +44,5 @@ banana_segar_busuk/
 # 👨‍💻 Author
 
 IKMAL CHAERUL IHSAN, ANURIFA, M.REVAN DWIANSYAH
-AI Engineer & Computer Vision Enthusiast
 
-Dibuat dengan ☕ dan debugging tanpa akhir di Indonesia.
+> 🧠 AI bukan hanya tentang teknologi masa depan — tetapi tentang membantu memilih kualitas terbaik hari ini.

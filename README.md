@@ -1,4 +1,4 @@
-# 🍌 Banana Segar Busuk
+# 🍌 Banana Detect-Version
 ### Sistem Deteksi Kondisi Pisang Berbasis YOLOv11
 
 Banana Segar Busuk adalah aplikasi computer vision berbasis browser yang digunakan untuk mendeteksi kondisi pisang secara real-time menggunakan model **YOLOv11**.

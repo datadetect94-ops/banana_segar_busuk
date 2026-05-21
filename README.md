@@ -1,7 +1,7 @@
 # 🍌 Banana Detect-Version
 ### Sistem Deteksi Kondisi Pisang Berbasis YOLOv11
 
-Banana Segar Busuk adalah aplikasi computer vision berbasis browser yang digunakan untuk mendeteksi kondisi pisang secara real-time menggunakan model **YOLOv11**.
+Banana Detect-Version adalah aplikasi computer vision berbasis browser yang digunakan untuk mendeteksi kondisi pisang secara real-time menggunakan model **YOLOv11**.
 
 Project ini dibuat untuk menunjukkan bagaimana teknologi **Edge AI** dapat dijalankan langsung di browser tanpa memerlukan backend server tambahan.
 
@@ -45,4 +45,4 @@ banana_segar_busuk/
 
 IKMAL CHAERUL IHSAN, ANURIFA, M.REVAN DWIANSYAH
 
-> 🧠 AI bukan hanya tentang teknologi masa depan — tetapi tentang membantu memilih kualitas terbaik hari ini.
+🧠 AI bukan hanya tentang teknologi masa depan — tetapi tentang membantu memilih kualitas terbaik hari ini.

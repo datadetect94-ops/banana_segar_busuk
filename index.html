@@ -4,40 +4,274 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deployment AI Siswa</title>
-    
-    <!-- Memuat mesin AI (ONNX Runtime Web) agar model bisa berjalan langsung di browser[cite: 2] -->
+
+    <!-- ONNX Runtime -->
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
-    
+
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        body { background-color: #121212; color: white; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .container { position: relative; width: 640px; height: 480px; border: 2px solid #555; border-radius: 10px; overflow: hidden; }
-        video, canvas#overlay { position: absolute; top: 0; left: 0; width: 640px; height: 480px; }
-        canvas#overlay { z-index: 10; pointer-events: none; }
-        #status { margin: 15px; padding: 10px; border-radius: 5px; background: #1e1e1e; border: 1px solid #444; width: 600px; text-align: center; }
-        .btn-start { padding: 12px 30px; font-size: 1.1rem; cursor: pointer; background: #FF3B30; color: white; border: none; border-radius: 5px; font-weight: bold; }
-        .btn-start:hover { background: #cc2f26; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, rgba(0,255,255,0.15), transparent 30%),
+                radial-gradient(circle at bottom right, rgba(255,0,128,0.15), transparent 30%),
+                #0f172a;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 18px;
+            border-radius: 999px;
+            background: rgba(0,255,255,0.12);
+            color: #7df9ff;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid rgba(125,249,255,0.25);
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #7df9ff, #ff4ecd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #cbd5e1;
+            font-size: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .btn-start {
+            padding: 14px 34px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0,114,255,0.4);
+        }
+
+        .btn-start:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(0,114,255,0.6);
+        }
+
+        .btn-start:active {
+            transform: scale(0.98);
+        }
+
+        #status {
+            width: 100%;
+            margin-bottom: 22px;
+            padding: 16px;
+            border-radius: 16px;
+            text-align: center;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #7df9ff;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .camera-card {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 4 / 3;
+            margin: auto;
+            border-radius: 22px;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.12);
+            background: #000;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.45);
+        }
+
+        video,
+        canvas#overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            object-fit: cover;
+        }
+
+        canvas#overlay {
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(to top, rgba(0,0,0,0.35), transparent 40%),
+                linear-gradient(to bottom, rgba(0,0,0,0.25), transparent 30%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: rgba(0,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,255,255,0.9);
+            z-index: 3;
+            animation: scan 3s linear infinite;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+            }
+            100% {
+                top: 100%;
+            }
+        }
+
+        .footer-info {
+            margin-top: 22px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .info-box {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            padding: 18px;
+        }
+
+        .info-box h3 {
+            color: #7df9ff;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .info-box p {
+            color: #d1d5db;
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            .app {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.9rem;
+            }
+
+            .btn-start {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <!-- GANTI BAGIAN INI dengan judul proyek kalian -->
-    <h1>🛡️ Proyek AI: Deteksi Otomatis</h1>
-    <p>Dibuat oleh: [Nama Kalian]</p>
-    
-    <button id="btn-init" class="btn-start">AKTIFKAN KAMERA</button>
-    <div id="status">STATUS: MATI</div>
+    <div class="app">
 
-    <div class="container">
-        <!-- Elemen video untuk menampilkan gambar langsung dari kamera laptop/HP[cite: 2] -->
-        <video id="webcam" playsinline muted></video>
-        <!-- Kanvas transparan untuk menggambar kotak deteksi di atas video kamera[cite: 2] -->
-        <canvas id="overlay" width="640" height="480"></canvas>
+        <div class="header">
+            <div class="badge">ARTIFICIAL INTELLIGENCE SYSTEM</div>
+            <h1>🛡️ AI Smart Detection</h1>
+            <p class="subtitle">Sistem deteksi otomatis berbasis AI menggunakan kamera real-time</p>
+            <p class="subtitle">Dibuat oleh: <strong>[Nama Kalian]</strong></p>
+        </div>
+
+        <div class="controls">
+            <button id="btn-init" class="btn-start">
+                🚀 AKTIFKAN KAMERA
+            </button>
+        </div>
+
+        <div id="status">
+            STATUS: SISTEM BELUM AKTIF
+        </div>
+
+        <div class="camera-card">
+            <video id="webcam" playsinline muted></video>
+            <canvas id="overlay" width="640" height="480"></canvas>
+
+            <div class="camera-overlay"></div>
+            <div class="scan-line"></div>
+        </div>
+
+        <!-- Canvas processor AI -->
+        <canvas id="processor" width="640" height="640" style="display:none;"></canvas>
+
+        <div class="footer-info">
+            <div class="info-box">
+                <h3>🎯 Real-time Detection</h3>
+                <p>Deteksi objek secara langsung menggunakan teknologi AI modern.</p>
+            </div>
+
+            <div class="info-box">
+                <h3>⚡ Fast Processing</h3>
+                <p>Pemrosesan cepat langsung di browser tanpa server tambahan.</p>
+            </div>
+
+            <div class="info-box">
+                <h3>🔒 Secure System</h3>
+                <p>Data kamera tetap aman karena semua proses berjalan lokal.</p>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Kanvas tersembunyi yang digunakan sistem untuk menyesuaikan ukuran gambar bagi AI (Jangan dihapus!)[cite: 2] -->
-    <canvas id="processor" width="640" height="640" style="display:none;"></canvas>
-
-    <!-- Memanggil file logika AI kalian -->
+    <!-- File logika AI -->
     <script src="app.js"></script>
+
 </body>
 </html>

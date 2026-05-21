@@ -1,401 +1,43 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Detection System</title>
-
-    <!-- ONNX Runtime -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deployment AI Siswa</title>
+    
+    <!-- Memuat mesin AI (ONNX Runtime Web) agar model bisa berjalan langsung di browser[cite: 2] -->
     <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
-
-    <!-- FONT -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-
+    
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background:
-                radial-gradient(circle at top left, #1f1f3a, transparent 40%),
-                radial-gradient(circle at bottom right, #002244, transparent 40%),
-                #0d1117;
-            color: white;
-            font-family: 'Poppins', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            overflow-x: hidden;
-        }
-
-        .app {
-            width: 100%;
-            max-width: 1100px;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .header h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.6rem;
-            color: #00e5ff;
-            letter-spacing: 2px;
-            text-shadow: 0 0 20px rgba(0,229,255,0.5);
-        }
-
-        .header p {
-            margin-top: 10px;
-            color: #c9d1d9;
-            font-size: 0.95rem;
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 20px;
-        }
-
-        .camera-card {
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 0 40px rgba(0,0,0,0.4);
-        }
-
-        .camera-wrapper {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 4/3;
-            border-radius: 15px;
-            overflow: hidden;
-            border: 2px solid rgba(0,229,255,0.3);
-            background: black;
-        }
-
-        video,
-        canvas#overlay {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-        }
-
-        canvas#overlay {
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        .ai-grid {
-            position: absolute;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(0,255,255,0.08) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0,255,255,0.08) 1px, transparent 1px);
-            background-size: 30px 30px;
-            z-index: 1;
-            pointer-events: none;
-        }
-
-        .scan-line {
-            position: absolute;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(to right, transparent, #00e5ff, transparent);
-            box-shadow: 0 0 15px #00e5ff;
-            animation: scan 3s linear infinite;
-            z-index: 3;
-        }
-
-        @keyframes scan {
-            0% {
-                top: 0;
-            }
-            100% {
-                top: 100%;
-            }
-        }
-
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .panel {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 20px;
-            backdrop-filter: blur(12px);
-        }
-
-        .panel h3 {
-            font-family: 'Orbitron', sans-serif;
-            color: #00e5ff;
-            margin-bottom: 15px;
-            font-size: 1rem;
-        }
-
-        .status-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
-
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: red;
-            box-shadow: 0 0 10px red;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            50% {
-                transform: scale(1.3);
-                opacity: 0.7;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .stat-card {
-            background: rgba(255,255,255,0.04);
-            padding: 15px;
-            border-radius: 14px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.06);
-        }
-
-        .stat-card h2 {
-            color: #00e5ff;
-            font-size: 1.8rem;
-        }
-
-        .stat-card p {
-            font-size: 0.8rem;
-            color: #aaa;
-        }
-
-        .btn-start {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #00e5ff, #0077ff);
-            color: white;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s ease;
-            font-family: 'Orbitron', sans-serif;
-            letter-spacing: 1px;
-            margin-top: 10px;
-        }
-
-        .btn-start:hover {
-            transform: translateY(-2px) scale(1.01);
-            box-shadow: 0 0 20px rgba(0,229,255,0.5);
-        }
-
-        .log-box {
-            height: 160px;
-            overflow-y: auto;
-            font-size: 0.85rem;
-            color: #ccc;
-            background: rgba(0,0,0,0.25);
-            border-radius: 12px;
-            padding: 12px;
-            line-height: 1.7;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 25px;
-            color: #777;
-            font-size: 0.85rem;
-        }
-
-        #processor {
-            display: none;
-        }
-
-        @media (max-width: 900px) {
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-        }
+        body { background-color: #121212; color: white; font-family: 'Courier New', Courier, monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { position: relative; width: 640px; height: 480px; border: 2px solid #555; border-radius: 10px; overflow: hidden; }
+        video, canvas#overlay { position: absolute; top: 0; left: 0; width: 640px; height: 480px; }
+        canvas#overlay { z-index: 10; pointer-events: none; }
+        #status { margin: 15px; padding: 10px; border-radius: 5px; background: #1e1e1e; border: 1px solid #444; width: 600px; text-align: center; }
+        .btn-start { padding: 12px 30px; font-size: 1.1rem; cursor: pointer; background: #FF3B30; color: white; border: none; border-radius: 5px; font-weight: bold; }
+        .btn-start:hover { background: #cc2f26; }
     </style>
 </head>
 <body>
 
-    <div class="app">
+    <!-- GANTI BAGIAN INI dengan judul proyek kalian -->
+    <h1>🛡️ Proyek AI: Deteksi Otomatis</h1>
+    <p>Dibuat oleh: [ikmal, rifa, revan]</p>
+    
+    <button id="btn-init" class="btn-start">AKTIFKAN KAMERA</button>
+    <div id="status">STATUS: MATI</div>
 
-        <div class="header">
-            <h1>🛡️ AI DETECTION SYSTEM</h1>
-            <p>Dibuat oleh: Ikmal • Rifa • Revan</p>
-        </div>
-
-        <div class="dashboard">
-
-            <!-- CAMERA SECTION -->
-            <div class="camera-card">
-                <div class="camera-wrapper">
-
-                    <video id="webcam" autoplay playsinline muted></video>
-
-                    <div class="ai-grid"></div>
-                    <div class="scan-line"></div>
-
-                    <canvas id="overlay" width="640" height="480"></canvas>
-                </div>
-            </div>
-
-            <!-- SIDEBAR -->
-            <div class="sidebar">
-
-                <div class="panel">
-                    <h3>STATUS SISTEM</h3>
-
-                    <div class="status-box">
-                        <div class="dot"></div>
-                        <span id="status-text">OFFLINE</span>
-                    </div>
-
-                    <button id="btn-init" class="btn-start">
-                        AKTIFKAN AI
-                    </button>
-                </div>
-
-                <div class="panel">
-                    <h3>STATISTIK AI</h3>
-
-                    <div class="stats">
-                        <div class="stat-card">
-                            <h2 id="fps">0</h2>
-                            <p>FPS</p>
-                        </div>
-
-                        <div class="stat-card">
-                            <h2 id="detected">0</h2>
-                            <p>Deteksi</p>
-                        </div>
-
-                        <div class="stat-card">
-                            <h2 id="confidence">0%</h2>
-                            <p>Akurasi</p>
-                        </div>
-
-                        <div class="stat-card">
-                            <h2 id="runtime">ONNX</h2>
-                            <p>Runtime</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <h3>LOG SISTEM</h3>
-
-                    <div class="log-box" id="log-box">
-                        [SYSTEM] Menunggu aktivasi kamera...<br>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="footer">
-            AI Vision Monitoring • Browser Based Detection • 2026
-        </div>
-
+    <div class="container">
+        <!-- Elemen video untuk menampilkan gambar langsung dari kamera laptop/HP[cite: 2] -->
+        <video id="webcam" playsinline muted></video>
+        <!-- Kanvas transparan untuk menggambar kotak deteksi di atas video kamera[cite: 2] -->
+        <canvas id="overlay" width="640" height="480"></canvas>
     </div>
 
-    <!-- Hidden processor canvas -->
-    <canvas id="processor" width="640" height="640"></canvas>
+    <!-- Kanvas tersembunyi yang digunakan sistem untuk menyesuaikan ukuran gambar bagi AI (Jangan dihapus!)[cite: 2] -->
+    <canvas id="processor" width="640" height="640" style="display:none;"></canvas>
 
-    <!-- APP LOGIC -->
-    <script>
-
-        const btn = document.getElementById('btn-init');
-        const statusText = document.getElementById('status-text');
-        const logBox = document.getElementById('log-box');
-
-        function addLog(text) {
-            logBox.innerHTML += text + '<br>';
-            logBox.scrollTop = logBox.scrollHeight;
-        }
-
-        btn.addEventListener('click', async () => {
-            try {
-                const video = document.getElementById('webcam');
-
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: true
-                });
-
-                video.srcObject = stream;
-
-                statusText.innerText = 'ONLINE';
-                document.querySelector('.dot').style.background = '#00ff88';
-                document.querySelector('.dot').style.boxShadow = '0 0 15px #00ff88';
-
-                addLog('[OK] Kamera berhasil diaktifkan');
-                addLog('[OK] Sistem AI online');
-                addLog('[INFO] Menjalankan model deteksi...');
-
-                // Simulasi statistik realtime
-                setInterval(() => {
-                    document.getElementById('fps').innerText = Math.floor(Math.random() * 10 + 25);
-                    document.getElementById('detected').innerText = Math.floor(Math.random() * 5);
-                    document.getElementById('confidence').innerText = Math.floor(Math.random() * 15 + 85) + '%';
-                }, 1000);
-
-            } catch (err) {
-                addLog('[ERROR] Kamera gagal diakses');
-                console.error(err);
-            }
-        });
-
-    </script>
-
-    <!-- Jika punya file app.js sendiri -->
+    <!-- Memanggil file logika AI kalian -->
     <script src="app.js"></script>
-
 </body>
 </html>

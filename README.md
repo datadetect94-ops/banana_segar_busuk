@@ -39,3 +39,10 @@ banana_segar_busuk/
 ├── app.js          # Logika inferensi & deteksi
 ├── best.onnx       # Model YOLOv11
 └── README.md
+
+👨‍💻 Author
+
+IKMAL CHAERUL IHSAN, ANURIFA, M.REVAN DWIANSYAH
+AI Engineer & Computer Vision Enthusiast
+
+Dibuat dengan ☕ dan debugging tanpa akhir di Indonesia.

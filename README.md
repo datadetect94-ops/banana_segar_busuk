@@ -43,6 +43,6 @@ banana_segar_busuk/
 
 # 👨‍💻 Author
 
-IKMAL CHAERUL IHSAN, ANURIFA, M.REVAN DWIANSYAH
+IKMAL CHAERUL IHSAN, ANURIFA, M.REVAN DWIANSYAH, Ali Rohman, Alif Renza.
 
 🧠 AI bukan hanya tentang teknologi masa depan — tetapi tentang membantu memilih kualitas terbaik hari ini.
